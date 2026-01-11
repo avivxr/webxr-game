@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 import { ARButton } from 'https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js';
-import { Game2D } from './Game2D.js';
+import { Game2D } from './SpaceGame.js';
 
 // --- THE 3D AR SCENE ---
 const scene = new THREE.Scene();
@@ -25,7 +25,7 @@ const gameMaterial = new THREE.MeshBasicMaterial({
   transparent: true // This tells Three.js to use the alpha channel of the canvas
 });
 
-const gameScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.4), gameMaterial);
+const gameScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), gameMaterial);
 gameScreen.position.set(0, 0.2, -1.5);
 gameScreen.scale.set(0.3,0.3,0.3 ); // Flip the plane to match canvas coordinates
 scene.add(gameScreen);
