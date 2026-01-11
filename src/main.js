@@ -28,7 +28,7 @@ const gameMaterial = new THREE.MeshBasicMaterial({
 
 const gameScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.4), gameMaterial);
 gameScreen.position.set(0, 0.2, -1.5);
-gameScr Reen.scale.set(0.3,0.3,0.3 ); // Flip the plane to match canvas coordinates
+gameScreen.scale.set(0.3,0.3,0.3 ); // Flip the plane to match canvas coordinates
 scene.add(gameScreen);
 
 // Handle the "Click" to jump
