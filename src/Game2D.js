@@ -114,7 +114,7 @@ jump() {
     this.ctx.fillRect(50, 240 - this.dinoY - 40, 40, 40);
     
     // Draw Cactus
-    this.ctx.fillStyle = 'red';
+    this.ctx.fillStyle  = '#00ff00';  
     this.ctx.fillRect(this.cactusX, 240 - 30, 20, 30);
     
     // Draw Floor
