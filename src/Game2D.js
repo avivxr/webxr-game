@@ -2,128 +2,114 @@ export class Game2D {
   constructor() {
     this.canvas = document.createElement('canvas');
     this.canvas.width = 512;
-    this.canvas.height = 256;
+    this.canvas.height = 512; // Square canvas works better for Invaders
     this.ctx = this.canvas.getContext('2d');
     
-    // Dino state
-    this.dinoY = 0;
-    this.velocity = 0;
-    this.gravity = -2000;
-    this.isJumping = false;
-    this.power = 800;
-
-    // Cactus state
-    this.cactusX = 512;
-    
-    // Game state
-    this.score = 0;
-    this.gameOver = false;
+    this.reset();
 
     // Desktop testing styles
-    this.canvas.style.backgroundColor = '#757575'; // Keeps the game area white
-
+    this.canvas.style.backgroundColor = '#000000'; // Space background
     this.canvas.style.position = 'fixed';
     this.canvas.style.top = '10px';
     this.canvas.style.left = '10px';
     this.canvas.style.zIndex = '1000';
-    this.canvas.style.border = '2px solid red';
+    this.canvas.style.border = '2px solid #00ff00';
     document.body.appendChild(this.canvas);
   }
 
-jump() {
-    if (this.gameOver) {
-      this.reset();
-      return;
-    }
-    if (!this.isJumping) {
-      this.velocity = this.power; // Set initial upward velocity
-      this.isJumping = true;
-    }
-  }
-
   reset() {
-    this.dinoY = 0;
-    this.cactusX = 512;
-    this.score = 0;
+    this.playerX = 236;
+    this.playerY = 460;
+    this.bullets = [];
+    this.invaders = [];
+    this.invaderDirection = 1;
+    this.invaderStepDown = false;
     this.gameOver = false;
-    this.velocity = 0;
+    this.score = 0;
+
+    // Create a 5x8 grid of invaders
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 8; col++) {
+        this.invaders.push({
+          x: 50 + col * 50,
+          y: 50 + row * 40,
+          alive: true
+        });
+      }
+    }
   }
 
-  checkCollision() {
-    // Define the Dino bounding box
-    const dinoLeft = 50;
-    const dinoRight = 90; 
-    const dinoBottom = 240 - this.dinoY; 
-    const dinoTop = dinoBottom - 40;
+  // Called by Right/Left on stick or A button
+  move(dir) {
+    this.playerX += dir * 10;
+    // Keep player on screen
+    this.playerX = Math.max(0, Math.min(472, this.playerX));
+  }
 
-    // Define the Cactus bounding box
-    const cactusLeft = this.cactusX;
-    const cactusRight = this.cactusX + 20;
-    const cactusTop = 240 - 30; 
-    const cactusBottom = 240;
-
-    // Collision math: check if boxes overlap
-    if (
-      dinoRight > cactusLeft &&
-      dinoLeft < cactusRight &&
-      dinoBottom > cactusTop
-    ) {
-      this.gameOver = true;
+  shoot() {
+    if (this.gameOver) { this.reset(); return; }
+    // Only allow 3 bullets at a time to prevent spamming
+    if (this.bullets.length < 3) {
+      this.bullets.push({ x: this.playerX + 18, y: this.playerY });
     }
   }
 
   update(deltaTime) {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // If game is over, stop logic and show text
     if (this.gameOver) {
-      this.ctx.fillStyle = 'white';
-      this.ctx.font = 'bold 40px Arial';
-      this.ctx.fillText('GAME OVER', 140, 120);
-      this.ctx.font = '20px Arial';
-      this.ctx.fillText('Press Space/A to Restart', 155, 150);
+      this.ctx.fillStyle = '#00ff00';
+      this.ctx.font = 'bold 40px Courier New';
+      this.ctx.fillText('MISSION FAILED', 100, 250);
       return;
     }
 
-    // Physics logic
-    if (this.isJumping) {
-     this.dinoY += this.velocity * deltaTime;
-      this.velocity += this.gravity * deltaTime; 
-      
-      if (this.dinoY <= 0) {
-        this.dinoY = 0;
-        this.isJumping = false;
-        this.velocity = 0;
-      }
+    this.ctx.clearRect(0, 0, 512, 512);
+
+    // 1. Update Invaders movement
+    let hitEdge = false;
+    this.invaders.forEach(inv => {
+      if (!inv.alive) return;
+      inv.x += (50 * deltaTime) * this.invaderDirection;
+      if (inv.x > 480 || inv.x < 10) hitEdge = true;
+      if (inv.y > 440) this.gameOver = true; // Invaders reached the bottom
+    });
+
+    if (hitEdge) {
+      this.invaderDirection *= -1;
+      this.invaders.forEach(inv => inv.y += 20);
     }
 
-    // Move cactus (speed in pixels per second)
-    this.cactusX -= 250 * deltaTime; 
-    
-    // Score point when cactus passes dino
-    if (this.cactusX < -20) {
-      this.cactusX = 512;
-      this.score++;
-    }
+    // 2. Update Bullets & Collision
+    this.bullets.forEach((bullet, bIndex) => {
+      bullet.y -= 300 * deltaTime;
+      if (bullet.y < 0) this.bullets.splice(bIndex, 1);
 
-    this.checkCollision();
+      this.invaders.forEach(inv => {
+        if (inv.alive && bullet.x > inv.x && bullet.x < inv.x + 30 && bullet.y > inv.y && bullet.y < inv.y + 30) {
+          inv.alive = false;
+          this.bullets.splice(bIndex, 1);
+          this.score += 10;
+        }
+      });
+    });
 
-    // --- DRAWING ---
-    // Draw Dino (Relative to floor at y=240)
+    // 3. DRAWING
+    // Draw Player (Green Tank)
+    this.ctx.fillStyle = '#00ff00';
+    this.ctx.fillRect(this.playerX, this.playerY, 40, 20);
+
+    // Draw Invaders
     this.ctx.fillStyle = '#ffffff';
-    this.ctx.fillRect(50, 240 - this.dinoY - 40, 40, 40);
-    
-    // Draw Cactus
-    this.ctx.fillStyle  = '#00ff00';  
-    this.ctx.fillRect(this.cactusX, 240 - 30, 20, 30);
-    
-    // Draw Floor
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.fillRect(0, 240, 512, 4);
-    
-    // Draw Score UI
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.font = '20px Arial';
-    this.ctx.fillText(`Score: ${this.score}`, 410, 30);
+    this.invaders.forEach(inv => {
+      if (inv.alive) this.ctx.fillRect(inv.x, inv.y, 30, 20);
+    });
+
+    // Draw Bullets
+    this.ctx.fillStyle = '#ffff00';
+    this.bullets.forEach(b => this.ctx.fillRect(b.x, b.y, 4, 10));
+
+    // Draw Score
+    this.ctx.fillStyle = '#00ff00';
+    this.ctx.font = '20px Courier New';
+    this.ctx.fillText(`SCORE: ${this.score}`, 10, 30);
   }
 }
