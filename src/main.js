@@ -1,7 +1,6 @@
-import * as THREE from 'three';
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-import { Game2D } from './Game2D.js'; // This imports your game logic
-
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+import { ARButton } from 'https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js';
+import { Game2D } from './Game2D.js';
 
 // --- THE 3D AR SCENE ---
 const scene = new THREE.Scene();
