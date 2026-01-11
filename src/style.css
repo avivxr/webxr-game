@@ -1,0 +1,5 @@
+body {
+  margin: 0;
+  background-color: #808080; /* This is a standard middle-gray */
+  overflow: hidden; /* Prevents scrollbars from appearing */
+}
