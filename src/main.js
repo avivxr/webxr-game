@@ -50,8 +50,6 @@ function SetCanvasPosition() {
 }
 
 let lastTime = performance.now();
-
-
 function render(timestamp) {
   const deltaTime = (timestamp - lastTime) / 1000;
   lastTime = timestamp;
@@ -60,33 +58,18 @@ function render(timestamp) {
     game.update(deltaTime);
   }
 
-const session = renderer.xr.getSession();
+  const session = renderer.xr.getSession();
   if (session) {
     for (const source of session.inputSources) {
       if (source.gamepad && source.handedness === 'right') {
-        const axes = source.gamepad.axes; // [0] is horizontal, [1] is vertical
-        const buttons = source.gamepad.buttons;
-
-        // Move player with Thumbstick (X axis)
-        if (Math.abs(axes[2]) > 0.1) { 
-          game.move(axes[2]); 
-        }
-
-        // Shoot with A Button (Index 4) or Trigger (Index 0)
-        if (buttons[4].pressed || buttons[0].pressed) {
-          // Add a small delay so one press doesn't shoot 100 bullets
-          if (!this.lastShot || timestamp - this.lastShot > 250) {
-            game.shoot();
-            this.lastShot = timestamp;
-          }
-        }
+        if (source.gamepad.buttons[4].pressed) game.jump();
       }
     }
   }
 
   SetCanvasPosition();
-  game.update(deltaTime);
   gameTexture.needsUpdate = true;
   renderer.render(scene, camera);
 }
+
 renderer.setAnimationLoop(render);
